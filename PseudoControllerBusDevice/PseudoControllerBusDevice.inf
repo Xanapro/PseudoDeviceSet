@@ -1,0 +1,78 @@
+;
+; PseudoControllerBusDevice.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={00000000-0000-0000-0000-000000000000}	; GUID_DEVCLASS_SYSTEM. system_driver
+Provider=%ManufacturerName%
+CatalogFile=PseudoControllerBusDevice.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+PseudoControllerBusDevice_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+PseudoControllerBusDevice.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%PseudoControllerBusDevice.DeviceDesc%=PseudoControllerBusDevice_Device, Root\PseudoControllerBusDevice ; TODO: edit hw-id
+
+[PseudoControllerBusDevice_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+PseudoControllerBusDevice.sys
+
+;-------------- Service installation
+[PseudoControllerBusDevice_Device.NT.Services]
+AddService = PseudoControllerBusDevice,%SPSVCINST_ASSOCSERVICE%, PseudoControllerBusDevice_Service_Inst
+
+; -------------- PseudoControllerBusDevice driver install sections
+[PseudoControllerBusDevice_Service_Inst]
+DisplayName    = %PseudoControllerBusDevice.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\PseudoControllerBusDevice.sys
+
+;
+;--- PseudoControllerBusDevice_Device Coinstaller installation ------
+;
+
+[PseudoControllerBusDevice_Device.NT.CoInstallers]
+AddReg=PseudoControllerBusDevice_Device_CoInstaller_AddReg
+CopyFiles=PseudoControllerBusDevice_Device_CoInstaller_CopyFiles
+
+[PseudoControllerBusDevice_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[PseudoControllerBusDevice_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[PseudoControllerBusDevice_Device.NT.Wdf]
+KmdfService =  PseudoControllerBusDevice, PseudoControllerBusDevice_wdfsect
+[PseudoControllerBusDevice_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="Your-Vendor"
+DiskName = "PseudoControllerBusDevice Installation Disk"
+PseudoControllerBusDevice.DeviceDesc = "PseudoControllerBusDevice"
+PseudoControllerBusDevice.SVCDESC = "PseudoControllerBusDevice Service"
